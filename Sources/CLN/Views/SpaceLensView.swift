@@ -56,6 +56,8 @@ struct SpaceLensView: View {
     @EnvironmentObject private var activity: ActivityStore
     @State private var confirm = false
     @State private var hovered: UUID?
+    /// The highlighted item: clicked, not selected. Space previews it.
+    @State private var current: UUID?
     @State private var preview: URL?
     @FocusState private var focused: Bool
 
@@ -116,9 +118,10 @@ struct SpaceLensView: View {
         .focused($focused)
         .onAppear { focused = true }
         .onKeyPress(.space) {
-            // Like Finder: Space previews the item under the pointer (or the one selected)
+            // Like Finder: Space previews the item under the pointer, or the highlighted one
             if preview != nil { preview = nil; return .handled }
-            let target = hoveredNode(node) ?? (model.selectedNodes.count == 1 ? model.selectedNodes.first : nil)
+            let target = hoveredNode(node) ?? node.children.first { $0.id == current }
+                ?? (model.selectedNodes.count == 1 ? model.selectedNodes.first : nil)
             guard let target else { return .ignored }
             preview = target.url
             return .handled
@@ -127,7 +130,8 @@ struct SpaceLensView: View {
             Button(L("Move to Trash"), role: .destructive) { model.trashSelected(activity: activity) }
             Button(L("Cancel"), role: .cancel) {}
         } message: {
-            Text(L("You can put them back from the Trash until you empty it."))
+            Text(L("You can put them back from the Trash until you empty it.")
+                 + (selectionHasAppData ? "\n\n" + L("Some of these are app data in your Library. Removing them can sign you out of apps or reset their settings.") : ""))
         }
     }
 
@@ -177,18 +181,19 @@ struct SpaceLensView: View {
         return ZStack {
             if isSel {
                 InkGlass(shape: shape, knob: true)
-                shape.strokeBorder(Theme.ink, lineWidth: 1.5)
             } else {
                 LiquidGlass(shape: shape, rim: 1.2, corner: 22)
                 if hovered == child.id { shape.fill(.white.opacity(0.18)) }
             }
-            cellLabel(name: child.name, size: child.size, area: area, selected: isSel)
+            if current == child.id { shape.strokeBorder(Theme.ink, lineWidth: 1.5) }
+            cellLabel(name: child.name, size: child.size, area: area,
+                      check: (model.selected.contains(child.id), { toggle(child) }))
                 .position(c)
         }
         .contentShape(shape)
         .onHover { hovered = $0 ? child.id : nil }
-        .onTapGesture(count: 2) { if child.isDirectory { model.current = child; model.selected = [] } }
-        .onTapGesture { toggle(child) }
+        .onTapGesture(count: 2) { open(child) }
+        .onTapGesture { current = child.id; focused = true }
         .contextMenu { menu(child) }
         .help("\(child.name) — \(FS.format(child.size))\(child.isDirectory ? "\n" + L("Double-click to open") : "")")
     }
@@ -198,26 +203,35 @@ struct SpaceLensView: View {
         return ZStack {
             shape.fill(Theme.ink.opacity(0.05))
             shape.strokeBorder(Theme.ink.opacity(0.18), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
-            cellLabel(name: L("%@ smaller items", "\(count)"), size: size, area: VoronoiTreemap.polygonArea(points), selected: false)
+            cellLabel(name: L("%@ smaller items", "\(count)"), size: size, area: VoronoiTreemap.polygonArea(points), check: nil)
                 .position(VoronoiTreemap.centroid(points))
         }
         .help(L("Smaller items, listed on the right"))
     }
 
-    /// Name and size at the cell's centre, scaled to the cell; hidden when there's no room.
-    @ViewBuilder private func cellLabel(name: String, size: Int64, area: Double, selected: Bool) -> some View {
+    /// Name and size at the cell's centre, scaled to the cell, with the circle that selects it;
+    /// hidden when there's no room (select those from the list or the right-click menu).
+    @ViewBuilder private func cellLabel(name: String, size: Int64, area: Double, check: (Bool, () -> Void)?) -> some View {
         let side = sqrt(area)
         if side > 56 {
-            VStack(spacing: 2) {
-                if selected { Image(systemName: "checkmark.circle.fill").font(.system(size: 12)) }
-                Text(name).font(Theme.caps(min(15, max(10, side / 14)), .semibold))
-                    .lineLimit(2).multilineTextAlignment(.center).truncationMode(.middle)
-                Text(FS.format(size)).font(Theme.mono(min(11, max(9, side / 20)))).foregroundStyle(Theme.ink.opacity(0.55))
+            VStack(spacing: 4) {
+                if let check { CheckBox(state: check.0 ? .on : .off, color: accent, action: check.1) }
+                VStack(spacing: 2) {
+                    Text(name).font(Theme.caps(min(15, max(10, side / 14)), .semibold))
+                        .lineLimit(2).multilineTextAlignment(.center).truncationMode(.middle)
+                    Text(FS.format(size)).font(Theme.mono(min(11, max(9, side / 20)))).foregroundStyle(Theme.ink.opacity(0.55))
+                }
+                .allowsHitTesting(false)
             }
             .foregroundStyle(Theme.ink)
             .frame(maxWidth: side * 0.75)
-            .allowsHitTesting(false)
         }
+    }
+
+    /// Double-click: folders open in the map, files open in Quick Look.
+    private func open(_ n: SpaceNode) {
+        current = n.id
+        if n.isDirectory { model.current = n; model.selected = [] } else { preview = n.url }
     }
 
     private func list(_ node: SpaceNode) -> some View {
@@ -236,11 +250,12 @@ struct SpaceLensView: View {
                         }
                     }
                     .padding(.horizontal, 10).padding(.vertical, 6)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(hovered == child.id ? Theme.ink.opacity(0.07) : .clear))
+                    .background(RoundedRectangle(cornerRadius: 8)
+                        .fill(Theme.ink.opacity(current == child.id ? 0.11 : hovered == child.id ? 0.06 : 0)))
                     .contentShape(Rectangle())
                     .onHover { hovered = $0 ? child.id : nil }
-                    .onTapGesture(count: 2) { if child.isDirectory { model.current = child; model.selected = [] } else { preview = child.url } }
-                    .onTapGesture { toggle(child) }
+                    .onTapGesture(count: 2) { open(child) }
+                    .onTapGesture { current = child.id; focused = true }
                     .contextMenu { menu(child) }
                 }
             }
@@ -262,6 +277,12 @@ struct SpaceLensView: View {
         }
         Divider()
         Button(model.selected.contains(n.id) ? L("Deselect") : L("Select for Trash")) { toggle(n) }
+    }
+
+    /// Whether anything selected lives in ~/Library (app data, logins, settings).
+    private var selectionHasAppData: Bool {
+        let lib = FS.home.appendingPathComponent("Library").path + "/"
+        return model.selectedNodes.contains { $0.url.path.hasPrefix(lib) || $0.url.path == String(lib.dropLast()) }
     }
 
     private func hoveredNode(_ node: SpaceNode) -> SpaceNode? {

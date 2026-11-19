@@ -17,6 +17,11 @@ struct ManagerView: View {
     @State private var confirm = false
     /// App group waiting for the "Uninstall …?" confirmation.
     @State private var uninstallGroup: UUID?
+    /// Highlighted file (clicked or moved to with the arrow keys) and the one under the pointer.
+    @State private var currentItem: UUID?
+    @State private var hoveredItem: UUID?
+    @State private var preview: URL?
+    @FocusState private var focused: Bool
 
     private var accent: Color { model.module.accent }
     private var visibleGroups: [CleanGroup] { model.groups(in: section) }
@@ -66,6 +71,21 @@ struct ManagerView: View {
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 20)
+        // Like Finder: Space previews the file under the pointer (or the highlighted one),
+        // the arrow keys move the highlight.
+        .quickLookPreview($preview)
+        .focusable()
+        .focusEffectDisabled()
+        .focused($focused)
+        .onAppear { focused = true }
+        .onKeyPress(.space) {
+            if preview != nil { preview = nil; return .handled }
+            guard let url = itemURL(hoveredItem ?? currentItem) else { return .ignored }
+            preview = url
+            return .handled
+        }
+        .onKeyPress(.downArrow) { moveCurrent(1) }
+        .onKeyPress(.upArrow) { moveCurrent(-1) }
         .alert(confirmTitle, isPresented: $confirm) {
             Button(isTrash ? L("Empty Trash") : isApps && !selectedApps.isEmpty ? L("Uninstall") : L("Move to Trash"), role: .destructive) {
                 if isTrash { model.setSelected(Sec.trash, true) }
@@ -154,7 +174,7 @@ struct ManagerView: View {
                     .padding(10)
                     .background(RoundedRectangle(cornerRadius: 12).fill(selected ? Theme.ink.opacity(0.07) : .clear))
                     .contentShape(Rectangle())
-                    .onTapGesture { currentGroup = g.id }
+                    .onTapGesture { currentGroup = g.id; currentItem = nil }
                 }
             }
             .padding(18)
@@ -178,7 +198,7 @@ struct ManagerView: View {
                 }
             }
             if group.section == "Apps" {
-                Text(L("Uninstalling removes the app and the files below: settings, caches, containers, logs and helpers that stay behind when you only drag an app to the Trash."))
+                Text(L("Uninstalling removes the app and the files below: settings, caches, containers, logs and helpers that stay behind when you only drag an app to the Trash. They only go together with the app, so apps you keep never lose their logins or settings."))
                     .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             HStack {
@@ -190,14 +210,22 @@ struct ManagerView: View {
                 Spacer()
                 Text(L("%@ items · %@", "\(group.items.count)", FS.format(group.totalSize))).font(.callout).foregroundStyle(.secondary)
             }
+            ScrollViewReader { scroller in
             ScrollView {
                 LazyVStack(spacing: 2) {
                     ForEach(ids, id: \.self) { id in
                         if let ii = model.groups[gi].items.firstIndex(where: { $0.id == id }) {
-                            ItemRow(item: itemBinding(gi, ii), accent: accent, fallback: group.symbol)
+                            ItemRow(item: itemBinding(gi, ii), accent: accent, fallback: group.symbol,
+                                    isCurrent: currentItem == id,
+                                    onClick: { currentItem = id; focused = true },
+                                    onHover: { hoveredItem = $0 ? id : (hoveredItem == id ? nil : hoveredItem) },
+                                    onPreview: { preview = model.groups[gi].items[ii].url })
                         }
                     }
                 }
+            }
+            // keep the highlighted file in view while moving with the arrow keys
+            .onChange(of: currentItem) { _, id in if let id { scroller.scrollTo(id) } }
             }
         }
         .padding(20)
@@ -234,13 +262,30 @@ struct ManagerView: View {
         return items.map(\.id)
     }
 
-    /// Ticking an app also ticks its leftovers, so the app is never removed on its own by accident.
+    private func itemURL(_ id: UUID?) -> URL? {
+        guard let id else { return nil }
+        return model.groups.lazy.flatMap(\.items).first { $0.id == id }?.url
+    }
+
+    /// Moves the highlight through the files shown, in their current order.
+    private func moveCurrent(_ step: Int) -> KeyPress.Result {
+        guard let gi = groupIndex, model.groups.indices.contains(gi) else { return .ignored }
+        let ids = sortedIDs(model.groups[gi])
+        guard !ids.isEmpty else { return .ignored }
+        let i = currentItem.flatMap { ids.firstIndex(of: $0) } ?? (step > 0 ? -1 : ids.count)
+        currentItem = ids[min(max(i + step, 0), ids.count - 1)]
+        if preview != nil { preview = itemURL(currentItem) }
+        return .handled
+    }
+
+    /// An installed app and its files are ticked together: its data (logins, settings, chats)
+    /// only ever goes as part of uninstalling it, never on its own, so an app you keep can't be
+    /// signed out or reset by a cleanup.
     private func itemBinding(_ gi: Int, _ ii: Int) -> Binding<CleanItem> {
         Binding(get: { model.groups[gi].items[ii] }, set: { new in
-            let wasApp = model.groups[gi].items[ii].url.pathExtension == "app"
             let toggled = model.groups[gi].items[ii].selected != new.selected
             model.groups[gi].items[ii] = new
-            if wasApp, toggled, model.groups[gi].section == "Apps" { setGroup(model.groups[gi].id, new.selected) }
+            if toggled, model.groups[gi].section == "Apps" { setGroup(model.groups[gi].id, new.selected) }
         })
     }
 
@@ -250,12 +295,18 @@ struct ManagerView: View {
     }
 }
 
+/// One file in a review list. Clicking highlights it (Space or a double-click previews it);
+/// only the circle selects it for removal.
 struct ItemRow: View {
     @Binding var item: CleanItem
     let accent: Color
     var fallback = "doc"
+    /// The highlighted row, the one Space previews.
+    var isCurrent = false
+    var onClick: () -> Void = {}
+    var onHover: (Bool) -> Void = { _ in }
+    var onPreview: () -> Void = {}
     @State private var hover = false
-    @State private var preview: URL?
 
     var body: some View {
         HStack(spacing: 12) {
@@ -271,24 +322,24 @@ struct ItemRow: View {
             }
             Text(FS.format(item.size)).font(.callout.monospacedDigit()).frame(width: 80, alignment: .trailing)
             Button { FS.reveal(item.url) } label: { Image(systemName: "magnifyingglass") }
-                .buttonStyle(.plain).foregroundStyle(.secondary).help(L("Show in Finder")).opacity(hover ? 1 : 0.4)
+                .buttonStyle(.plain).foregroundStyle(.secondary).help(L("Show in Finder")).opacity(hover || isCurrent ? 1 : 0.4)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 7)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Theme.ink.opacity(hover ? 0.06 : 0)))
+        .background(RoundedRectangle(cornerRadius: 10).fill(Theme.ink.opacity(isCurrent ? 0.11 : hover ? 0.05 : 0)))
         .contentShape(Rectangle())
-        .onHover { hover = $0 }
-        .onTapGesture { item.selected.toggle() }
+        .onHover { hover = $0; onHover($0) }
+        .onTapGesture(count: 2) { onClick(); onPreview() }
+        .onTapGesture { onClick() }
         .contextMenu {
-            Button(L("Quick Look")) { preview = item.url }
+            Button(L("Quick Look")) { onClick(); onPreview() }
             Button(L("Show in Finder")) { FS.reveal(item.url) }
             Button(L("Copy Path")) {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(item.url.path, forType: .string)
             }
             Divider()
-            Button(item.selected ? "Deselect" : "Select") { item.selected.toggle() }
+            Button(item.selected ? L("Deselect") : L("Select")) { item.selected.toggle() }
         }
-        .quickLookPreview($preview)
     }
 }

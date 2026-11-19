@@ -119,14 +119,34 @@ enum AppScanner {
                 let parts = id.split(separator: ".")
                 guard parts.count >= 3, parts.allSatisfy({ !$0.isEmpty && !$0.contains(" ") }),
                       !id.hasPrefix("com.apple."), !id.hasPrefix("group."), !id.contains("GlobalPreferences"),
+                      !id.hasPrefix("org.sparkle-project."),   // updater shared by many apps
                       !vendors.contains(vendor(id)),
                       NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) == nil else { continue }
+                // Data used in the last 30 days belongs to something still in use (an app kept
+                // outside Applications, a helper, a login item), whatever its name says.
+                guard !usedRecently(u, days: 30) else { continue }
                 let size = FS.size(of: u)
                 guard size > 0 else { continue }
                 out.append(CleanItem(url: u, name: id, detail: "\(place) · \(FS.tilde(u.path))", size: size))
             }
         }
         return out.sorted { $0.size > $1.size }
+    }
+
+    /// True when the item or anything near the top of it changed within `days`.
+    static func usedRecently(_ url: URL, days: Double) -> Bool {
+        let cutoff = Date().addingTimeInterval(-days * 86_400)
+        func modified(_ u: URL) -> Date? { (try? u.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate }
+        if let d = modified(url), d > cutoff { return true }
+        guard let e = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.contentModificationDateKey],
+                                                     options: [.skipsPackageDescendants]) else { return false }
+        var checked = 0
+        for case let u as URL in e {
+            if let d = modified(u), d > cutoff { return true }
+            checked += 1
+            if checked > 400 { break }
+        }
+        return false
     }
 
     private static func vendor(_ id: String) -> String {

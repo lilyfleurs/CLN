@@ -1895,5 +1895,17 @@ it|Il download non è la versione di CLN prevista.
 de|Der Download ist nicht die erwartete CLN-Version.
 fr|Le téléchargement n'est pas la version de CLN attendue.
 es|La descarga no es la versión de CLN esperada.
+
+Uninstalling removes the app and the files below: settings, caches, containers, logs and helpers that stay behind when you only drag an app to the Trash. They only go together with the app, so apps you keep never lose their logins or settings.
+it|Disinstallare rimuove l'app e i file qui sotto: impostazioni, cache, contenitori, log e helper che restano se trascini solo l'app nel Cestino. Vengono rimossi solo insieme all'app, così le app che tieni non perdono mai login o impostazioni.
+de|Deinstallieren entfernt die App und die Dateien unten: Einstellungen, Caches, Container, Protokolle und Helfer, die bleiben, wenn du nur die App in den Papierkorb ziehst. Sie werden nur zusammen mit der App entfernt, damit Apps, die du behältst, nie ihre Anmeldungen oder Einstellungen verlieren.
+fr|Désinstaller supprime l'app et les fichiers ci-dessous : réglages, caches, conteneurs, journaux et assistants qui restent si vous glissez seulement l'app dans la corbeille. Ils ne partent qu'avec l'app, pour que les apps que vous gardez ne perdent jamais leurs connexions ni leurs réglages.
+es|Desinstalar elimina la app y los archivos de abajo: ajustes, cachés, contenedores, registros y ayudantes que quedan si solo arrastras la app a la Papelera. Solo se eliminan junto con la app, para que las apps que conservas nunca pierdan sus sesiones ni ajustes.
+
+Some of these are app data in your Library. Removing them can sign you out of apps or reset their settings.
+it|Alcuni sono dati di app nella tua Libreria. Rimuoverli può disconnetterti dalle app o reimpostarne le impostazioni.
+de|Einige davon sind App-Daten in deiner Library. Wenn du sie entfernst, wirst du eventuell aus Apps abgemeldet oder ihre Einstellungen werden zurückgesetzt.
+fr|Certains sont des données d'apps dans votre Bibliothèque. Les supprimer peut vous déconnecter d'apps ou réinitialiser leurs réglages.
+es|Algunos son datos de apps en tu Biblioteca. Eliminarlos puede cerrar tu sesión en apps o restablecer sus ajustes.
 """#
 }
