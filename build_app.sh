@@ -46,7 +46,8 @@ PLIST
 
 codesign --force --deep -s - "$APP"
 
-# The zip to attach to the GitHub release (the in-app updater downloads this)
-rm -f build/CLN-*.zip
-ditto -c -k --keepParent "$APP" "build/CLN-$VERSION.zip"
-echo "Built $APP and build/CLN-$VERSION.zip"
+# The zip to attach to the GitHub release. Always named CLN.zip, so the download button
+# (releases/latest/download/CLN.zip) and the in-app updater find the newest one.
+rm -f build/CLN*.zip
+ditto -c -k --keepParent "$APP" "build/CLN.zip"
+echo "Built $APP ($VERSION) and build/CLN.zip"

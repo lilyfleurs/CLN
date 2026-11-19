@@ -1,5 +1,11 @@
 # CLN — Mac Care
 
+<p align="center">
+  <a href="https://github.com/lilyfleurs/CLN/releases/latest/download/CLN.zip">
+    <img src="docs/download-button.svg" alt="Download CLN" width="360">
+  </a>
+</p>
+
 A free Mac cleaner. Scans for system junk, AI tool clutter, large and old files, app leftovers
 and startup items, uninstalls apps completely, and maps your disk. Everything it removes goes to
 the Trash first, and nothing leaves your Mac.
@@ -8,8 +14,8 @@ Available in English, Italiano, Deutsch, Français and Español. Requires macOS 
 
 ## Download
 
-Get the latest `CLN.zip` from [Releases](https://github.com/lilyfleurs/CLN/releases/latest), unzip it and move **CLN.app** to
-Applications.
+Click **Download CLN** above (or get `CLN.zip` from [Releases](https://github.com/lilyfleurs/CLN/releases/latest)),
+unzip it and move **CLN.app** to Applications.
 
 The first time you open it, macOS may say it can't check the app for malicious software. Open
 **System Settings › Privacy & Security**, scroll down and click **Open Anyway** next to CLN.

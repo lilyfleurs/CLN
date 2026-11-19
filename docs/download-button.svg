@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="84" viewBox="0 0 360 84">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#99B8D6"/>
+      <stop offset="0.55" stop-color="#C4D4E1"/>
+      <stop offset="1" stop-color="#DCE0E3"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.62" cy="0.75" r="0.7">
+      <stop offset="0" stop-color="#3D788F" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#3D788F" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="pool" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.04"/>
+      <stop offset="0.5" stop-color="#fff" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0.30"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E0F7FF" stop-opacity="0.8"/>
+      <stop offset="0.3" stop-color="#E0F7FF" stop-opacity="0"/>
+      <stop offset="0.7" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="1"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-20%" width="120%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#081F29" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <rect x="8" y="6" width="344" height="64" rx="32" fill="url(#bg)"/>
+    <rect x="8" y="6" width="344" height="64" rx="32" fill="url(#glow)"/>
+    <rect x="8" y="6" width="344" height="64" rx="32" fill="url(#pool)"/>
+    <rect x="9" y="7" width="342" height="62" rx="31" fill="none" stroke="url(#rim)" stroke-width="2"/>
+    <rect x="7.5" y="5.5" width="345" height="65" rx="32.5" fill="none" stroke="#081F29" stroke-opacity="0.18" stroke-width="1"/>
+  </g>
+  <!-- download arrow -->
+  <g transform="translate(46 38)" fill="none" stroke="#171716" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0 -12 V6 M-7 -1 L0 6 L7 -1 M-11 12 H11"/>
+  </g>
+  <text x="72" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-size="19" font-weight="700" letter-spacing="1.6" fill="#171716">DOWNLOAD CLN</text>
+  <text x="72" y="54" font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+        font-size="10.5" letter-spacing="1.4" fill="#171716" fill-opacity="0.6">FREE · MAC · MACOS 14 OR LATER</text>
+</svg>
