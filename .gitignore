@@ -1,0 +1,10 @@
+# Build output (rebuild with ./build_app.sh)
+.build/
+build/
+*.zip
+
+# Mockups, renders and personal images: not part of the app
+design/
+
+.DS_Store
+.swiftpm/
