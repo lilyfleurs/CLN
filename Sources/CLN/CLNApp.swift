@@ -42,10 +42,12 @@ struct CLNApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(activity)
-                .frame(minWidth: 1120, minHeight: 720)
+                .frame(minWidth: 1120, idealWidth: 1280, minHeight: 720, idealHeight: 800)
                 .onAppear { NSApp.activate(ignoringOtherApps: true) }
         }
         .windowStyle(.hiddenTitleBar)
+        #if !LEGACY
         .defaultSize(width: 1280, height: 800)
+        #endif
     }
 }

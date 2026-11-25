@@ -42,7 +42,7 @@ struct LegalSheet: View {
                 VStack(alignment: .leading, spacing: 10) {
                     CLNLogo(size: 40)
                     SwissLabel(text: L("Privacy · Terms"))
-                    if Links.repo != nil { UpdateStatus() }
+                    if SelfUpdate.enabled { UpdateStatus() }
                 }
                 Spacer()
                 Button(L("Close")) { dismiss() }.buttonStyle(GhostButtonStyle())

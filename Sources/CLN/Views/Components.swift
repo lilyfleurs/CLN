@@ -117,7 +117,7 @@ struct ScanningView: View {
                         .lineLimit(1)
                         .truncationMode(.middle)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentTransition(.identity)
+                        .identityTransition()
                 }
                 .glassCard(radius: 18, padding: 18)
             }
@@ -125,7 +125,7 @@ struct ScanningView: View {
             .padding(.vertical, 20)
         }
         .onAppear { start = Date(); stages = [label(status)] }
-        .onChange(of: status) { _, s in
+        .whenChanged(status) { s in
             let l = label(s)
             if stages.last != l { stages.append(l) }
         }
@@ -173,7 +173,7 @@ struct ScanningView: View {
             Spacer(minLength: 0)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(files.formatted()).font(Theme.display(50, .light)).foregroundStyle(Theme.ink)
-                    .contentTransition(.numericText())
+                    .numericTransition()
                 Text(L("files checked")).font(Theme.display(15)).foregroundStyle(Theme.ink.opacity(0.55))
             }
         }
@@ -208,7 +208,7 @@ struct ScanningView: View {
             }
             .frame(height: 36)
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(FS.format(bytes)).font(Theme.display(32)).foregroundStyle(Theme.ink).contentTransition(.numericText())
+                Text(FS.format(bytes)).font(Theme.display(32)).foregroundStyle(Theme.ink).numericTransition()
                 if let e = expectedBytes {
                     Text(L("of %@", FS.format(e))).font(Theme.display(14)).foregroundStyle(Theme.ink.opacity(0.5))
                 }
@@ -436,7 +436,7 @@ struct FolderPicker: View {
             .frame(width: 300)
             .glassCard(radius: 16, padding: 12)
         }
-        .menuStyle(.button)
+        .buttonMenuStyle()
         .buttonStyle(.plain)
         .fixedSize()
     }

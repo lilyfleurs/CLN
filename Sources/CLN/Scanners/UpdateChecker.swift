@@ -49,9 +49,12 @@ enum UpdateChecker {
         let build = info["CFBundleVersion"] as? String ?? ""
 
         if FS.exists(url.appendingPathComponent("Contents/_MASReceipt")), let id = info["CFBundleIdentifier"] as? String {
+            let regionCode: String
+            if #available(macOS 13, *) { regionCode = Locale.current.region?.identifier.lowercased() ?? "us" }
+            else { regionCode = Locale.current.regionCode?.lowercased() ?? "us" }
             var c = URLComponents(string: "https://itunes.apple.com/lookup")!
             c.queryItems = [URLQueryItem(name: "bundleId", value: id),
-                            URLQueryItem(name: "country", value: Locale.current.region?.identifier.lowercased() ?? "us")]
+                            URLQueryItem(name: "country", value: regionCode)]
             guard let (data, _) = try? await session.data(from: c.url!),
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let result = (json["results"] as? [[String: Any]])?.first,

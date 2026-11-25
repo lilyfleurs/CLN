@@ -30,8 +30,18 @@ final class SelfUpdate: ObservableObject {
         check()
     }
 
+    /// The macOS 12 edition (0.0.0) doesn't update itself: the releases it would find are the
+    /// macOS 14 edition, which wouldn't open on that Mac.
+    static var enabled: Bool {
+        #if LEGACY
+        return false
+        #else
+        return Links.repo != nil
+        #endif
+    }
+
     func check() {
-        guard let repo = Links.repo,
+        guard Self.enabled, let repo = Links.repo,
               let url = URL(string: "https://api.github.com/repos/\(repo)/releases/latest") else { return }
         state = .checking
         Task {
@@ -45,7 +55,9 @@ final class SelfUpdate: ObservableObject {
                       let page = (json["html_url"] as? String).flatMap(URL.init(string:)) else { return nil }
                 let version = tag.hasPrefix("v") ? String(tag.dropFirst()) : tag
                 let assets = json["assets"] as? [[String: Any]] ?? []
-                let zip = assets.first { ($0["name"] as? String)?.lowercased().hasSuffix(".zip") == true }
+                // CLN.zip is this edition; the release also carries CLN-macOS12.zip for Monterey.
+                let zip = assets.first { ($0["name"] as? String) == "CLN.zip" }
+                    ?? assets.first { ($0["name"] as? String)?.lowercased().hasSuffix(".zip") == true && ($0["name"] as? String)?.contains("macOS12") == false }
                 let download = (zip?["browser_download_url"] as? String).flatMap(URL.init(string:))
                 return CLNRelease(version: version, page: page, download: download, notes: json["body"] as? String ?? "")
             }()

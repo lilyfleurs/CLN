@@ -71,6 +71,7 @@ enum Snapshots {
             .foregroundStyle(Theme.ink)
             .environmentObject(activity)
             .environment(\.colorScheme, .light)
+            guard #available(macOS 13, *) else { return }
             let r = ImageRenderer(content: content)
             r.scale = 1
             if let img = r.nsImage, let tiff = img.tiffRepresentation,
@@ -123,6 +124,7 @@ enum Snapshots {
         .environmentObject(activity)
         .environment(\.colorScheme, .light)
 
+        guard #available(macOS 13, *) else { return }
         let r = ImageRenderer(content: content)
         r.scale = 1
         if let img = r.nsImage, let tiff = img.tiffRepresentation,

@@ -114,18 +114,18 @@ struct SpaceLensView: View {
         .id(model.revision)
         .quickLookPreview($preview)
         .focusable()
-        .focusEffectDisabled()
+        .noFocusRing()
         .focused($focused)
         .onAppear { focused = true }
-        .onKeyPress(.space) {
+        .onListKeys(space: {
             // Like Finder: Space previews the item under the pointer, or the highlighted one
-            if preview != nil { preview = nil; return .handled }
+            if preview != nil { preview = nil; return true }
             let target = hoveredNode(node) ?? node.children.first { $0.id == current }
                 ?? (model.selectedNodes.count == 1 ? model.selectedNodes.first : nil)
-            guard let target else { return .ignored }
+            guard let target else { return false }
             preview = target.url
-            return .handled
-        }
+            return true
+        })
         .alert(L("Move %@ items to the Trash?", "\(model.selected.count)"), isPresented: $confirm) {
             Button(L("Move to Trash"), role: .destructive) { model.trashSelected(activity: activity) }
             Button(L("Cancel"), role: .cancel) {}

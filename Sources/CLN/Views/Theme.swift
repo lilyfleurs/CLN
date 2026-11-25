@@ -299,7 +299,7 @@ struct GlassSegmented<T: Hashable>: View {
         HStack(spacing: 2) {
             ForEach(options, id: \.value) { option in
                 let on = option.value == selection
-                Button { withAnimation(.snappy(duration: 0.25)) { selection = option.value } } label: {
+                Button { withAnimation(.quick(0.25)) { selection = option.value } } label: {
                     Text(option.label.uppercased())
                         .font(Theme.caps(10.5, on ? .semibold : .medium))
                         .tracking(0.6)
@@ -350,7 +350,7 @@ struct PillButtonStyle: ButtonStyle {
                     configuration.label
                         .font(Theme.caps(15))
                         .textCase(.uppercase)
-                        .tracking(1.6)
+                        .compatTracking(1.6)
                         .embossed()
                         .padding(.horizontal, 44)
                         .padding(.vertical, 18)
@@ -359,7 +359,7 @@ struct PillButtonStyle: ButtonStyle {
                     configuration.label
                         .font(Theme.caps(10.5))
                         .textCase(.uppercase)
-                        .tracking(0.8)
+                        .compatTracking(0.8)
                         .lineLimit(1)
                         .fixedSize()
                         .embossed()
@@ -388,7 +388,7 @@ struct GhostButtonStyle: ButtonStyle {
             configuration.label
                 .font(Theme.caps(11.5))
                 .textCase(.uppercase)
-                .tracking(1)
+                .compatTracking(1)
                 .embossed()
                 .padding(.horizontal, 15)
                 .padding(.vertical, 7)

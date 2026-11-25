@@ -18,7 +18,7 @@ struct SectionCardsView: View {
         Group {
             if scrolls { ScrollView { content } } else { content }
         }
-        .onChange(of: model.lastResult?.freed) { showBanner = true }
+        .whenChanged(model.lastResult?.freed) { _ in showBanner = true }
         .alert(alertTitle, isPresented: Binding(get: { pending != nil }, set: { if !$0 { pending = nil } })) {
             Button(confirmTitle, role: .destructive) {
                 let s = pending
@@ -206,7 +206,7 @@ struct AutoCleanCard: View {
                 Spacer(minLength: 0)
             }
             GlassSegmented(selection: $frequency, options: AutoFrequency.allCases.map { ($0, $0 == .biweekly ? L("2 weeks") : $0.label) })
-                .onChange(of: frequency) { _, f in error = AutoClean.set(f) }
+                .whenChanged(frequency) { f in error = AutoClean.set(f) }
                 HStack(spacing: 18) {
                     if let next = AutoClean.nextRun, frequency != .off {
                         Label(L("Next: %@", next.formatted(date: .abbreviated, time: .shortened)), systemImage: "calendar")

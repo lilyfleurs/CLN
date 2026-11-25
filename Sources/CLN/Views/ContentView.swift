@@ -148,7 +148,7 @@ struct SidebarFooter: View {
 
     private var tipRow: some View {
         HStack(spacing: 10) {
-            Button { withAnimation(.snappy(duration: 0.2)) { showLanguages.toggle() } } label: {
+            Button { withAnimation(.quick(0.2)) { showLanguages.toggle() } } label: {
                 IconTile(symbol: "globe", size: 32)
             }
             .buttonStyle(.plain)
@@ -222,7 +222,7 @@ struct AppearanceSwitch: View {
 
     private func option(_ a: Appearance, _ symbol: String, _ help: String) -> some View {
         let on = appearance == a.rawValue
-        return Button { withAnimation(.snappy(duration: 0.25)) { appearance = a.rawValue } } label: {
+        return Button { withAnimation(.quick(0.25)) { appearance = a.rawValue } } label: {
             Image(systemName: symbol)
                 .font(.system(size: 10, weight: on ? .semibold : .regular))
                 .foregroundStyle(Theme.ink.opacity(on ? 1 : 0.5))

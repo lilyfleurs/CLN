@@ -75,17 +75,15 @@ struct ManagerView: View {
         // the arrow keys move the highlight.
         .quickLookPreview($preview)
         .focusable()
-        .focusEffectDisabled()
+        .noFocusRing()
         .focused($focused)
         .onAppear { focused = true }
-        .onKeyPress(.space) {
-            if preview != nil { preview = nil; return .handled }
-            guard let url = itemURL(hoveredItem ?? currentItem) else { return .ignored }
+        .onListKeys(space: {
+            if preview != nil { preview = nil; return true }
+            guard let url = itemURL(hoveredItem ?? currentItem) else { return false }
             preview = url
-            return .handled
-        }
-        .onKeyPress(.downArrow) { moveCurrent(1) }
-        .onKeyPress(.upArrow) { moveCurrent(-1) }
+            return true
+        }, down: { moveCurrent(1) }, up: { moveCurrent(-1) })
         .alert(confirmTitle, isPresented: $confirm) {
             Button(isTrash ? L("Empty Trash") : isApps && !selectedApps.isEmpty ? L("Uninstall") : L("Move to Trash"), role: .destructive) {
                 if isTrash { model.setSelected(Sec.trash, true) }
@@ -225,7 +223,7 @@ struct ManagerView: View {
                 }
             }
             // keep the highlighted file in view while moving with the arrow keys
-            .onChange(of: currentItem) { _, id in if let id { scroller.scrollTo(id) } }
+            .whenChanged(currentItem) { id in if let id { scroller.scrollTo(id) } }
             }
         }
         .padding(20)
@@ -268,14 +266,14 @@ struct ManagerView: View {
     }
 
     /// Moves the highlight through the files shown, in their current order.
-    private func moveCurrent(_ step: Int) -> KeyPress.Result {
-        guard let gi = groupIndex, model.groups.indices.contains(gi) else { return .ignored }
+    private func moveCurrent(_ step: Int) -> Bool {
+        guard let gi = groupIndex, model.groups.indices.contains(gi) else { return false }
         let ids = sortedIDs(model.groups[gi])
-        guard !ids.isEmpty else { return .ignored }
+        guard !ids.isEmpty else { return false }
         let i = currentItem.flatMap { ids.firstIndex(of: $0) } ?? (step > 0 ? -1 : ids.count)
         currentItem = ids[min(max(i + step, 0), ids.count - 1)]
         if preview != nil { preview = itemURL(currentItem) }
-        return .handled
+        return true
     }
 
     /// An installed app and its files are ticked together: its data (logins, settings, chats)
