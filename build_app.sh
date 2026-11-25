@@ -3,12 +3,12 @@
 # Run: ./build_app.sh            (version 1.0.0, macOS 14 and later)
 #      ./build_app.sh 1.0.1      (a new version: the in-app updater offers it once released)
 #      ./build_app.sh --macos12  (the macOS 12 Monterey edition, version 0.0.0, for Intel and
-#                                 Apple chips, into build/macOS12/ as CLN-macOS12.zip)
+#                                 Apple chips, into build/macOS12/ as CLN_macOS12.zip)
 set -euo pipefail
 cd "$(dirname "$0")"
 
 if [ "${1:-}" = "--macos12" ]; then
-  LEGACY=1; VERSION="0.0.0"; MIN_OS="12.0"; OUT="build/macOS12"; ZIP="CLN-macOS12.zip"
+  LEGACY=1; VERSION="0.0.0"; MIN_OS="12.0"; OUT="build/macOS12"; ZIP="CLN_macOS12.zip"
 else
   LEGACY=0; VERSION="${1:-1.0.0}"; MIN_OS="14.0"; OUT="build"; ZIP="CLN.zip"
 fi

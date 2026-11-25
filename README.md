@@ -18,7 +18,7 @@ Click **Download CLN** above (or get `CLN.zip` from [Releases](https://github.co
 unzip it and move **CLN.app** to Applications.
 
 **On macOS 12 Monterey or 13 Ventura?** Download
-[CLN-macOS12.zip](https://github.com/lilyfleurs/CLN/releases/latest/download/CLN-macOS12.zip)
+[CLN_macOS12.zip](https://github.com/lilyfleurs/CLN/releases/latest/download/CLN_macOS12.zip)
 instead. It's the same app for older Macs (Intel and Apple chips). It doesn't update itself, so
 check back here for new versions.
 
